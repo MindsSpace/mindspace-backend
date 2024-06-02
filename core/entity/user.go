@@ -10,11 +10,10 @@ import (
 
 type User struct {
 	ID       uuid.UUID `gorm:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
-	Name     string    `json:"name" gorm:"not null"`
-	Email    string    `json:"email" gorm:"unique;not null"`
+	Username string    `json:"username" gorm:"unique;not null"`
 	Password string    `json:"password" gorm:"not null"`
-	Role     string    `json:"role" gorm:"not null"`
-	Picture  string    `json:"picture"`
+	Level    int       `json:"level" gorm:"not null"`
+	Point    int       `json:"point" gorm:"not null"`
 	base.Model
 }
 

@@ -23,12 +23,9 @@ type UserController interface {
 	Login(ctx *gin.Context)
 	GetAllUsers(ctx *gin.Context)
 	GetMe(ctx *gin.Context)
-	UpdateSelfName(ctx *gin.Context)
 	UpdateUserByID(ctx *gin.Context)
 	DeleteSelfUser(ctx *gin.Context)
 	DeleteUserByID(ctx *gin.Context)
-	ChangePicture(ctx *gin.Context)
-	DeletePicture(ctx *gin.Context)
 }
 
 func NewUserController(userS service.UserService, jwtS service.JWTService) UserController {
@@ -39,7 +36,7 @@ func NewUserController(userS service.UserService, jwtS service.JWTService) UserC
 }
 
 func (uc *userController) Register(ctx *gin.Context) {
-	var userDTO dto.UserRegisterRequest
+	var userDTO dto.UserAuthRequest
 	err := ctx.ShouldBind(&userDTO)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, base.CreateFailResponse(
@@ -65,7 +62,7 @@ func (uc *userController) Register(ctx *gin.Context) {
 }
 
 func (uc *userController) Login(ctx *gin.Context) {
-	var userDTO dto.UserLoginRequest
+	var userDTO dto.UserAuthRequest
 	err := ctx.ShouldBind(&userDTO)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, base.CreateFailResponse(
@@ -75,7 +72,7 @@ func (uc *userController) Login(ctx *gin.Context) {
 		return
 	}
 
-	res := uc.userService.VerifyLogin(ctx, userDTO.Email, userDTO.Password)
+	res := uc.userService.VerifyLogin(ctx, userDTO.Username, userDTO.Password)
 	if !res {
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, base.CreateFailResponse(
 			messages.MsgUserWrongCredential,
@@ -84,7 +81,7 @@ func (uc *userController) Login(ctx *gin.Context) {
 		return
 	}
 
-	user, err := uc.userService.GetUserByPrimaryKey(ctx, constant.DBAttrEmail, userDTO.Email)
+	user, err := uc.userService.GetUserByPrimaryKey(ctx, constant.DBAttrUsername, userDTO.Username)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, base.CreateFailResponse(
 			messages.MsgUserLoginFailed,
@@ -93,8 +90,8 @@ func (uc *userController) Login(ctx *gin.Context) {
 		return
 	}
 
-	token := uc.jwtService.GenerateToken(user.ID, user.Role)
-	authResp := base.CreateAuthResponse(token, user.Role)
+	token := uc.jwtService.GenerateToken(user.ID, constant.EnumRoleUser)
+	authResp := base.CreateAuthResponse(token, constant.EnumRoleUser)
 	ctx.JSON(http.StatusOK, base.CreateSuccessResponse(
 		messages.MsgUserLoginSuccess,
 		http.StatusOK, authResp,
@@ -146,33 +143,6 @@ func (uc *userController) GetMe(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, base.CreateSuccessResponse(
 		messages.MsgUserFetchSuccess,
-		http.StatusOK, user,
-	))
-}
-
-func (uc *userController) UpdateSelfName(ctx *gin.Context) {
-	var userDTO dto.UserNameUpdateRequest
-	err := ctx.ShouldBind(&userDTO)
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, base.CreateFailResponse(
-			messages.MsgUserUpdateFailed,
-			err.Error(), http.StatusBadRequest,
-		))
-		return
-	}
-
-	id := ctx.MustGet("ID").(string)
-	user, err := uc.userService.UpdateSelfName(ctx, userDTO, id)
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, base.CreateFailResponse(
-			messages.MsgUserUpdateFailed,
-			err.Error(), http.StatusBadRequest,
-		))
-		return
-	}
-
-	ctx.JSON(http.StatusOK, base.CreateSuccessResponse(
-		messages.MsgUserUpdateSuccess,
 		http.StatusOK, user,
 	))
 }
@@ -235,51 +205,6 @@ func (uc *userController) DeleteUserByID(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, base.CreateSuccessResponse(
 		messages.MsgUserDeleteSuccess,
-		http.StatusOK, nil,
-	))
-}
-
-func (uc *userController) ChangePicture(ctx *gin.Context) {
-	id := ctx.MustGet("ID").(string)
-
-	var userDTO dto.UserChangePictureRequest
-	err := ctx.ShouldBind(&userDTO)
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, base.CreateFailResponse(
-			messages.MsgUserPictureUpdateFailed,
-			err.Error(), http.StatusBadRequest,
-		))
-		return
-	}
-
-	res, err := uc.userService.ChangePicture(ctx, userDTO, id)
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, base.CreateFailResponse(
-			messages.MsgUserPictureUpdateFailed,
-			err.Error(), http.StatusBadRequest,
-		))
-		return
-	}
-
-	ctx.JSON(http.StatusOK, base.CreateSuccessResponse(
-		messages.MsgUserPictureUpdateSuccess,
-		http.StatusOK, res,
-	))
-}
-
-func (uc *userController) DeletePicture(ctx *gin.Context) {
-	id := ctx.Param("user_id")
-	err := uc.userService.DeletePicture(ctx, id)
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, base.CreateFailResponse(
-			messages.MsgUserPictureDeleteFailed,
-			err.Error(), http.StatusBadRequest,
-		))
-		return
-	}
-
-	ctx.JSON(http.StatusOK, base.CreateSuccessResponse(
-		messages.MsgUserPictureDeleteSuccess,
 		http.StatusOK, nil,
 	))
 }

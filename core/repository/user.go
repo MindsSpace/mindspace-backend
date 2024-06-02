@@ -24,7 +24,6 @@ type UserRepository interface {
 	CreateNewUser(ctx context.Context, tx *gorm.DB, user entity.User) (entity.User, error)
 	GetUserByPrimaryKey(ctx context.Context, tx *gorm.DB, key string, val string) (entity.User, error)
 	GetAllUsers(ctx context.Context, tx *gorm.DB, req base.GetsRequest) ([]entity.User, int64, int64, error)
-	UpdateNameUser(ctx context.Context, tx *gorm.DB, name string, user entity.User) (entity.User, error)
 	UpdateUser(ctx context.Context, tx *gorm.DB, user entity.User) (entity.User, error)
 	DeleteUserByID(ctx context.Context, tx *gorm.DB, id string) error
 }
@@ -115,24 +114,6 @@ func (ur *userRepository) GetAllUsers(ctx context.Context, tx *gorm.DB,
 		return users, 0, 0, err
 	}
 	return users, lastPage, total, nil
-}
-
-func (ur *userRepository) UpdateNameUser(ctx context.Context,
-	tx *gorm.DB, name string, user entity.User) (entity.User, error) {
-	var err error
-	userUpdate := user
-	userUpdate.Name = name
-	if tx == nil {
-		tx = ur.txr.DB().WithContext(ctx).Debug().Save(&userUpdate)
-		err = tx.Error
-	} else {
-		err = tx.WithContext(ctx).Debug().Save(&userUpdate).Error
-	}
-
-	if err != nil {
-		return userUpdate, err
-	}
-	return userUpdate, nil
 }
 
 func (ur *userRepository) UpdateUser(ctx context.Context, tx *gorm.DB, user entity.User) (entity.User, error) {
