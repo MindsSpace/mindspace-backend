@@ -24,6 +24,14 @@ func main() {
 		userS = service.NewUserService(userR)
 		userC = controller.NewUserController(userS, jwtS)
 
+		roomR = repository.NewRoomRepository(txR)
+		roomS = service.NewRoomService(roomR)
+		roomC = controller.NewRoomController(roomS)
+
+		chatR = repository.NewChatRepository(txR)
+		chatS = service.NewChatService(chatR)
+		chatC = controller.NewChatController(chatS)
+
 		fileC = controller.NewFileController()
 	)
 
@@ -37,6 +45,8 @@ func main() {
 
 	// Setting Up Routes
 	router.UserRouter(server, userC, jwtS)
+	router.RoomRouter(server, roomC, jwtS)
+	router.ChatRouter(server, chatC, jwtS)
 	router.FileRouter(server, fileC)
 
 	// Running in localhost:8080

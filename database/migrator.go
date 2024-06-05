@@ -11,6 +11,8 @@ import (
 func DBMigrate(db *gorm.DB) {
 	err := db.AutoMigrate(
 		entity.User{},
+		entity.Chat{},
+		entity.Room{},
 	)
 
 	if err != nil {
