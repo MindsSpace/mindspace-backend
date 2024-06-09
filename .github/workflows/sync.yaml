@@ -1,8 +1,6 @@
-name: "Sync With Organization"
-# Run the workflow on push events to the main branch
-# and pull requests merged into the main branch
+# .github/workflows/git-sync.yml
 
-on:
+on: 
   push:
     branches:
       - main
@@ -10,15 +8,13 @@ on:
 
 jobs:
   git-sync:
-    if: ${{ github.repository == 'https://github.com/zetsux/mindspace-be' }}
+    if: ${{ github.repository == 'zetsux/mindspace-be' }}
     runs-on: ubuntu-latest
     steps:
-      - name: 🔒 Cencel Prev Workflow
-        uses: styfle/cancel-workflow-action
-      - name: 🔗 Synchronize Repository
+      - name: git-sync
         uses: wei/git-sync@v3
         with:
-          source_repo: "https://robbypambudi:${{ secrets.ACCESS_TOKEN }}@github.com/zetsux/mindspace-be.git"
+          source_repo: "https://robbypambudi:${{secrets.ACCESS_TOKEN}}@github.com/zetsux/mindspace-be.git"
           source_branch: "main"
-          destination_repo: "https://robbypambudi:${{ secrets.ACCESS_TOKEN }}@github.com/MindsSpace/mindspace-backend.git"
+          destination_repo: "https://robbypambudi:${{secrets.ACCESS_TOKEN}}@github.com/MindsSpace/mindspace-backend.git"
           destination_branch: "main"
