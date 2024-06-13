@@ -20,7 +20,6 @@ func UserRouter(router *gin.Engine, userC controller.UserController, jwtS servic
 		// user routes
 		userRoutes.GET("/me", middleware.Authenticate(jwtS, constant.EnumRoleUser), userC.GetMe)
 		userRoutes.DELETE("/me", middleware.Authenticate(jwtS, constant.EnumRoleUser), userC.DeleteSelfUser)
-		userRoutes.POST("", userC.Register)
-		userRoutes.POST("/login", userC.Login)
+		userRoutes.POST("", userC.Authenticate)
 	}
 }

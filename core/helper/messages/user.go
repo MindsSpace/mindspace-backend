@@ -1,12 +1,9 @@
 package messages
 
 const (
-	MsgUserRegisterSuccess = "User register successful"
-	MsgUserRegisterFailed  = "Failed to process user register request"
-
-	MsgUserLoginSuccess    = "User login successful"
-	MsgUserLoginFailed     = "Failed to process user login request"
-	MsgUserWrongCredential = "Entered credentials invalid"
+	MsgUserAuthenticateSuccess = "User authentication successful"
+	MsgUserAuthenticateFailed  = "Failed to process user authentication request"
+	MsgUserWrongPassword       = "Entered password is incorrect"
 
 	MsgUsersFetchSuccess = "Users fetched successfully"
 	MsgUsersFetchFailed  = "Failed to fetch users"

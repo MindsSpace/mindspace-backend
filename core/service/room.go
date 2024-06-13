@@ -4,6 +4,7 @@ import (
 	"context"
 	"reflect"
 
+	"github.com/google/uuid"
 	"github.com/zetsux/gin-gorm-clean-starter/core/entity"
 	"github.com/zetsux/gin-gorm-clean-starter/core/helper/dto"
 	errs "github.com/zetsux/gin-gorm-clean-starter/core/helper/errors"
@@ -12,6 +13,7 @@ import (
 
 type roomService struct {
 	roomRepository repository.RoomRepository
+	chatRepository repository.ChatRepository
 }
 
 type RoomService interface {
@@ -21,8 +23,8 @@ type RoomService interface {
 	DeleteRoomByID(ctx context.Context, id string) error
 }
 
-func NewRoomService(roomR repository.RoomRepository) RoomService {
-	return &roomService{roomRepository: roomR}
+func NewRoomService(roomR repository.RoomRepository, chatR repository.ChatRepository) RoomService {
+	return &roomService{roomRepository: roomR, chatRepository: chatR}
 }
 
 func (us *roomService) GetRoomAndChatsByID(ctx context.Context, id string) (dto.RoomResponse, error) {
@@ -41,13 +43,31 @@ func (us *roomService) GetRoomAndChatsByID(ctx context.Context, id string) (dto.
 }
 
 func (us *roomService) CreateNewRoom(ctx context.Context, ud dto.RoomCreateRequest) (dto.RoomResponse, error) {
+	db, err := us.roomRepository.TxRepository().BeginTx(ctx)
+	if err != nil {
+		return dto.RoomResponse{}, err
+	}
+	defer us.roomRepository.TxRepository().CommitOrRollbackTx(ctx, db, nil)
+
 	room := entity.Room{
-		Name:   ud.Name,
+		Name:   "Chatroom-" + uuid.New().String(),
 		UserID: ud.UserID,
 	}
 
 	// create new room
-	newRoom, err := us.roomRepository.CreateNewRoom(ctx, nil, room)
+	newRoom, err := us.roomRepository.CreateNewRoom(ctx, db, room)
+	if err != nil {
+		return dto.RoomResponse{}, err
+	}
+
+	chat := entity.Chat{
+		Content: ud.Greeting,
+		IsUser:  false,
+		RoomID:  newRoom.ID.String(),
+	}
+
+	// create first chat
+	firstChat, err := us.chatRepository.CreateNewChat(ctx, db, chat)
 	if err != nil {
 		return dto.RoomResponse{}, err
 	}
@@ -56,6 +76,7 @@ func (us *roomService) CreateNewRoom(ctx context.Context, ud dto.RoomCreateReque
 		ID:        newRoom.ID.String(),
 		Name:      newRoom.Name,
 		UserID:    newRoom.UserID,
+		Chats:     []entity.Chat{firstChat},
 		CreatedAt: newRoom.CreatedAt.String(),
 	}, nil
 }

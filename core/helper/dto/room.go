@@ -6,8 +6,8 @@ import (
 
 type (
 	RoomCreateRequest struct {
-		Name   string `json:"name" form:"name" binding:"required"`
-		UserID string `json:"user_id" form:"user_id"`
+		Greeting string `json:"greeting" form:"greeting" binding:"required"`
+		UserID   string `json:"user_id" form:"user_id"`
 	}
 
 	RoomResponse struct {

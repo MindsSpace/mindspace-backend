@@ -22,6 +22,7 @@ type RoomRepository interface {
 	GetRoomByID(ctx context.Context, tx *gorm.DB, id string) (entity.Room, error)
 	GetRoomAndChatsByID(ctx context.Context, tx *gorm.DB, id string) (entity.Room, error)
 	GetAllUserRooms(ctx context.Context, tx *gorm.DB, userID string) ([]entity.Room, error)
+	UpdateRoomName(ctx context.Context, tx *gorm.DB, id string, new string) error
 	DeleteRoomByID(ctx context.Context, tx *gorm.DB, id string) error
 }
 
@@ -96,6 +97,17 @@ func (rr *roomRepository) GetAllUserRooms(ctx context.Context, tx *gorm.DB, user
 		return nil, err
 	}
 	return rooms, nil
+}
+
+func (rr *roomRepository) UpdateRoomName(ctx context.Context, tx *gorm.DB, id string, new string) error {
+	if tx == nil {
+		tx = rr.txr.DB()
+	}
+
+	if err := tx.WithContext(ctx).Debug().Model(&entity.Room{}).Where("id = ?", id).Update("name", new).Error; err != nil {
+		return err
+	}
+	return nil
 }
 
 func (rr *roomRepository) DeleteRoomByID(ctx context.Context, tx *gorm.DB, id string) error {

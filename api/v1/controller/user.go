@@ -1,12 +1,14 @@
 package controller
 
 import (
+	"errors"
 	"net/http"
 	"reflect"
 
 	"github.com/zetsux/gin-gorm-clean-starter/common/base"
 	"github.com/zetsux/gin-gorm-clean-starter/common/constant"
 	"github.com/zetsux/gin-gorm-clean-starter/core/helper/dto"
+	errs "github.com/zetsux/gin-gorm-clean-starter/core/helper/errors"
 	"github.com/zetsux/gin-gorm-clean-starter/core/helper/messages"
 	"github.com/zetsux/gin-gorm-clean-starter/core/service"
 
@@ -19,8 +21,7 @@ type userController struct {
 }
 
 type UserController interface {
-	Register(ctx *gin.Context)
-	Login(ctx *gin.Context)
+	Authenticate(ctx *gin.Context)
 	GetAllUsers(ctx *gin.Context)
 	GetMe(ctx *gin.Context)
 	UpdateUserByID(ctx *gin.Context)
@@ -35,56 +36,28 @@ func NewUserController(userS service.UserService, jwtS service.JWTService) UserC
 	}
 }
 
-func (uc *userController) Register(ctx *gin.Context) {
+func (uc *userController) Authenticate(ctx *gin.Context) {
 	var userDTO dto.UserAuthRequest
 	err := ctx.ShouldBind(&userDTO)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, base.CreateFailResponse(
-			messages.MsgUserRegisterFailed,
+			messages.MsgUserAuthenticateFailed,
 			err.Error(), http.StatusBadRequest,
 		))
 		return
 	}
 
-	newUser, err := uc.userService.CreateNewUser(ctx, userDTO)
+	user, err := uc.userService.AuthenticateUser(ctx, userDTO)
 	if err != nil {
+		if errors.Is(err, errs.ErrPasswordWrong) {
+			ctx.AbortWithStatusJSON(http.StatusBadRequest, base.CreateFailResponse(
+				messages.MsgUserWrongPassword,
+				err.Error(), http.StatusBadRequest,
+			))
+			return
+		}
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, base.CreateFailResponse(
-			messages.MsgUserRegisterFailed,
-			err.Error(), http.StatusBadRequest,
-		))
-		return
-	}
-
-	ctx.JSON(http.StatusCreated, base.CreateSuccessResponse(
-		messages.MsgUserRegisterSuccess,
-		http.StatusCreated, newUser,
-	))
-}
-
-func (uc *userController) Login(ctx *gin.Context) {
-	var userDTO dto.UserAuthRequest
-	err := ctx.ShouldBind(&userDTO)
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, base.CreateFailResponse(
-			messages.MsgUserLoginFailed,
-			err.Error(), http.StatusBadRequest,
-		))
-		return
-	}
-
-	res := uc.userService.VerifyLogin(ctx, userDTO.Username, userDTO.Password)
-	if !res {
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, base.CreateFailResponse(
-			messages.MsgUserWrongCredential,
-			"", http.StatusBadRequest,
-		))
-		return
-	}
-
-	user, err := uc.userService.GetUserByPrimaryKey(ctx, constant.DBAttrUsername, userDTO.Username)
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, base.CreateFailResponse(
-			messages.MsgUserLoginFailed,
+			messages.MsgUserAuthenticateFailed,
 			err.Error(), http.StatusBadRequest,
 		))
 		return
@@ -93,7 +66,7 @@ func (uc *userController) Login(ctx *gin.Context) {
 	token := uc.jwtService.GenerateToken(user.ID, constant.EnumRoleUser)
 	authResp := base.CreateAuthResponse(token, constant.EnumRoleUser)
 	ctx.JSON(http.StatusOK, base.CreateSuccessResponse(
-		messages.MsgUserLoginSuccess,
+		messages.MsgUserAuthenticateSuccess,
 		http.StatusOK, authResp,
 	))
 }

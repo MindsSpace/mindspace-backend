@@ -18,8 +18,7 @@ type userService struct {
 }
 
 type UserService interface {
-	VerifyLogin(ctx context.Context, username string, password string) bool
-	CreateNewUser(ctx context.Context, ud dto.UserAuthRequest) (dto.UserResponse, error)
+	AuthenticateUser(ctx context.Context, ud dto.UserAuthRequest) (dto.UserResponse, error)
 	GetAllUsers(ctx context.Context, req base.GetsRequest) ([]dto.UserResponse, base.PaginationResponse, error)
 	GetUserByPrimaryKey(ctx context.Context, key string, value string) (dto.UserResponse, error)
 	UpdateUserByID(ctx context.Context, ud dto.UserUpdateRequest, id string) (dto.UserResponse, error)
@@ -30,30 +29,28 @@ func NewUserService(userR repository.UserRepository) UserService {
 	return &userService{userRepository: userR}
 }
 
-func (us *userService) VerifyLogin(ctx context.Context, username string, password string) bool {
-	userCheck, err := us.userRepository.GetUserByPrimaryKey(ctx, nil, constant.DBAttrUsername, username)
-	if err != nil {
-		return false
-	}
-	passwordCheck, err := util.PasswordCompare(userCheck.Password, []byte(password))
-	if err != nil {
-		return false
-	}
-
-	if userCheck.Username == username && passwordCheck {
-		return true
-	}
-	return false
-}
-
-func (us *userService) CreateNewUser(ctx context.Context, ud dto.UserAuthRequest) (dto.UserResponse, error) {
+func (us *userService) AuthenticateUser(ctx context.Context, ud dto.UserAuthRequest) (dto.UserResponse, error) {
 	userCheck, err := us.userRepository.GetUserByPrimaryKey(ctx, nil, constant.DBAttrUsername, ud.Username)
 	if err != nil {
 		return dto.UserResponse{}, err
 	}
 
+	// check if exist
 	if !(reflect.DeepEqual(userCheck, entity.User{})) {
-		return dto.UserResponse{}, errs.ErrUsernameAlreadyExists
+		passwordCheck, err := util.PasswordCompare(userCheck.Password, []byte(ud.Password))
+		if err != nil {
+			return dto.UserResponse{}, err
+		}
+
+		if userCheck.Username == ud.Username && passwordCheck {
+			return dto.UserResponse{
+				ID:       userCheck.ID.String(),
+				Username: userCheck.Username,
+				Level:    userCheck.Level,
+				Point:    userCheck.Point,
+			}, nil
+		}
+		return dto.UserResponse{}, errs.ErrPasswordWrong
 	}
 
 	user := entity.User{

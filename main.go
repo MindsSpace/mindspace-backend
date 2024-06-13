@@ -18,20 +18,19 @@ func main() {
 	var (
 		db   = config.DBSetup()
 		jwtS = service.NewJWTService()
-		txR  = repository.NewTxRepository(db)
 
+		txR   = repository.NewTxRepository(db)
 		userR = repository.NewUserRepository(txR)
-		userS = service.NewUserService(userR)
-		userC = controller.NewUserController(userS, jwtS)
-
-		roomR = repository.NewRoomRepository(txR)
-		roomS = service.NewRoomService(roomR)
-		roomC = controller.NewRoomController(roomS)
-
 		chatR = repository.NewChatRepository(txR)
-		chatS = service.NewChatService(chatR)
-		chatC = controller.NewChatController(chatS)
+		roomR = repository.NewRoomRepository(txR)
 
+		userS = service.NewUserService(userR)
+		chatS = service.NewChatService(chatR, roomR)
+		roomS = service.NewRoomService(roomR, chatR)
+
+		userC = controller.NewUserController(userS, jwtS)
+		chatC = controller.NewChatController(chatS)
+		roomC = controller.NewRoomController(roomS)
 		fileC = controller.NewFileController()
 	)
 

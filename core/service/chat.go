@@ -12,6 +12,7 @@ import (
 
 type chatService struct {
 	chatRepository repository.ChatRepository
+	roomRepository repository.RoomRepository
 }
 
 type ChatService interface {
@@ -20,8 +21,8 @@ type ChatService interface {
 	DeleteChatByID(ctx context.Context, id string) error
 }
 
-func NewChatService(chatR repository.ChatRepository) ChatService {
-	return &chatService{chatRepository: chatR}
+func NewChatService(chatR repository.ChatRepository, roomR repository.RoomRepository) ChatService {
+	return &chatService{chatRepository: chatR, roomRepository: roomR}
 }
 
 func (us *chatService) GetChatByID(ctx context.Context, id string) (dto.ChatResponse, error) {
@@ -40,6 +41,19 @@ func (us *chatService) GetChatByID(ctx context.Context, id string) (dto.ChatResp
 }
 
 func (us *chatService) CreateNewChat(ctx context.Context, cd dto.ChatCreateRequest) (dto.ChatResponse, error) {
+	db, err := us.chatRepository.TxRepository().BeginTx(ctx)
+	if err != nil {
+		return dto.ChatResponse{}, err
+	}
+	defer us.roomRepository.TxRepository().CommitOrRollbackTx(ctx, db, nil)
+
+	checkRoom, err := us.roomRepository.GetRoomAndChatsByID(ctx, db, cd.RoomID)
+	if err != nil {
+		return dto.ChatResponse{}, err
+	} else if len(checkRoom.Chats) <= 1 {
+		us.roomRepository.UpdateRoomName(ctx, db, checkRoom.ID.String(), cd.Content)
+	}
+
 	chat := entity.Chat{
 		Content: cd.Content,
 		IsUser:  true,
@@ -47,7 +61,7 @@ func (us *chatService) CreateNewChat(ctx context.Context, cd dto.ChatCreateReque
 	}
 
 	// create new chat
-	newChat, err := us.chatRepository.CreateNewChat(ctx, nil, chat)
+	newChat, err := us.chatRepository.CreateNewChat(ctx, db, chat)
 	if err != nil {
 		return dto.ChatResponse{}, err
 	}
