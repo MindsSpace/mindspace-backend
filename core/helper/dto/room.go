@@ -6,7 +6,7 @@ import (
 
 type (
 	RoomCreateRequest struct {
-		Greeting string `json:"greeting" form:"greeting" binding:"required"`
+		Greeting string `json:"greeting" form:"greeting"`
 		UserID   string `json:"user_id" form:"user_id"`
 	}
 

@@ -10,8 +10,9 @@ type Response struct {
 }
 
 type AuthResponse struct {
-	Token string `json:"token"`
-	Role  string `json:"role"`
+	Token      string `json:"token"`
+	Role       string `json:"role"`
+	IsProfiled *bool  `json:"is_profiled,omitempty"`
 }
 
 type PaginationResponse struct {
@@ -39,8 +40,8 @@ func CreatePaginatedResponse(msg string, statusCode uint, d any, pageMeta Pagina
 	}
 }
 
-func CreateAuthResponse(token string, role string) AuthResponse {
+func CreateAuthResponse(token string, role string, isProfiled *bool) AuthResponse {
 	return AuthResponse{
-		Token: token, Role: role,
+		Token: token, Role: role, IsProfiled: isProfiled,
 	}
 }

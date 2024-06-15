@@ -7,10 +7,11 @@ type (
 	}
 
 	UserResponse struct {
-		ID       string `json:"id"`
-		Username string `json:"username"`
-		Level    int    `json:"level"`
-		Point    int    `json:"point"`
+		ID         string `json:"id"`
+		Username   string `json:"username"`
+		Level      int    `json:"level"`
+		Point      int    `json:"point"`
+		IsProfiled *bool  `json:"is_profiled,omitempty"`
 	}
 
 	UserUpdateRequest struct {

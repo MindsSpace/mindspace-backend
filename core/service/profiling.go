@@ -2,8 +2,10 @@ package service
 
 import (
 	"context"
+	"math/rand"
 	"time"
 
+	"github.com/zetsux/gin-gorm-clean-starter/common/constant"
 	"github.com/zetsux/gin-gorm-clean-starter/core/entity"
 	"github.com/zetsux/gin-gorm-clean-starter/core/helper/dto"
 	"github.com/zetsux/gin-gorm-clean-starter/core/helper/errors"
@@ -12,6 +14,7 @@ import (
 
 type profilingService struct {
 	profilingRepository repository.ProfilingRepository
+	roomService         RoomService
 }
 
 type ProfilingService interface {
@@ -19,8 +22,8 @@ type ProfilingService interface {
 	GetUserLast7DaysProfilings(ctx context.Context, userID string) ([]dto.ProfilingResponse, error)
 }
 
-func NewProfilingService(profilingR repository.ProfilingRepository) ProfilingService {
-	return &profilingService{profilingRepository: profilingR}
+func NewProfilingService(profilingR repository.ProfilingRepository, roomS RoomService) ProfilingService {
+	return &profilingService{profilingRepository: profilingR, roomService: roomS}
 }
 
 func (us *profilingService) CreateNewProfiling(ctx context.Context, ud dto.ProfilingCreateRequest) (dto.ProfilingResponse, error) {
@@ -39,11 +42,21 @@ func (us *profilingService) CreateNewProfiling(ctx context.Context, ud dto.Profi
 		return dto.ProfilingResponse{}, errors.ErrProfilingFilledToday
 	}
 
+	// create room for profiling
+	newRoom, err := us.roomService.CreateNewRoom(ctx, dto.RoomCreateRequest{
+		Greeting: constant.GreetingMessages[rand.Intn(len(constant.GreetingMessages))],
+		UserID:   ud.UserID,
+	})
+	if err != nil {
+		return dto.ProfilingResponse{}, err
+	}
+
 	profiling := entity.Profiling{
 		Mood:       ud.Mood,
 		Problems:   ud.Problems,
 		Approaches: ud.Approaches,
 		UserID:     ud.UserID,
+		RoomID:     newRoom.ID,
 	}
 
 	// create new profiling
@@ -58,6 +71,7 @@ func (us *profilingService) CreateNewProfiling(ctx context.Context, ud dto.Profi
 		Problems:   newProfiling.Problems,
 		Approaches: newProfiling.Approaches,
 		UserID:     newProfiling.UserID,
+		RoomID:     newRoom.ID,
 		IsFilled:   true,
 		CreatedAt:  newProfiling.CreatedAt.String(),
 	}, nil
@@ -85,6 +99,7 @@ func (us *profilingService) GetUserLast7DaysProfilings(ctx context.Context, user
 				Approaches: profilings[idx].Approaches,
 				IsFilled:   true,
 				UserID:     profilings[idx].UserID,
+				RoomID:     profilings[idx].RoomID,
 				CreatedAt:  profilings[idx].CreatedAt.String(),
 			}
 			idx++

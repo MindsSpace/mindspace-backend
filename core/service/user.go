@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"reflect"
+	"time"
 
 	"github.com/zetsux/gin-gorm-clean-starter/common/base"
 	"github.com/zetsux/gin-gorm-clean-starter/common/constant"
@@ -14,7 +15,8 @@ import (
 )
 
 type userService struct {
-	userRepository repository.UserRepository
+	userRepository      repository.UserRepository
+	profilingRepository repository.ProfilingRepository
 }
 
 type UserService interface {
@@ -25,12 +27,18 @@ type UserService interface {
 	DeleteUserByID(ctx context.Context, id string) error
 }
 
-func NewUserService(userR repository.UserRepository) UserService {
-	return &userService{userRepository: userR}
+func NewUserService(userR repository.UserRepository, profilingR repository.ProfilingRepository) UserService {
+	return &userService{userRepository: userR, profilingRepository: profilingR}
 }
 
 func (us *userService) AuthenticateUser(ctx context.Context, ud dto.UserAuthRequest) (dto.UserResponse, error) {
-	userCheck, err := us.userRepository.GetUserByPrimaryKey(ctx, nil, constant.DBAttrUsername, ud.Username)
+	db, err := us.userRepository.TxRepository().BeginTx(ctx)
+	if err != nil {
+		return dto.UserResponse{}, err
+	}
+	defer us.userRepository.TxRepository().CommitOrRollbackTx(ctx, db, nil)
+
+	userCheck, err := us.userRepository.GetUserByPrimaryKey(ctx, db, constant.DBAttrUsername, ud.Username)
 	if err != nil {
 		return dto.UserResponse{}, err
 	}
@@ -43,11 +51,22 @@ func (us *userService) AuthenticateUser(ctx context.Context, ud dto.UserAuthRequ
 		}
 
 		if userCheck.Username == ud.Username && passwordCheck {
+			lastProfiling, err := us.profilingRepository.GetUserLatestProfiling(ctx, db, userCheck.ID.String())
+			if err != nil {
+				return dto.UserResponse{}, err
+			}
+
+			isProfiled := false
+			if lastProfiling.CreatedAt.Day() == time.Now().Day() {
+				isProfiled = true
+			}
+
 			return dto.UserResponse{
-				ID:       userCheck.ID.String(),
-				Username: userCheck.Username,
-				Level:    userCheck.Level,
-				Point:    userCheck.Point,
+				ID:         userCheck.ID.String(),
+				Username:   userCheck.Username,
+				Level:      userCheck.Level,
+				Point:      userCheck.Point,
+				IsProfiled: &isProfiled,
 			}, nil
 		}
 		return dto.UserResponse{}, errs.ErrPasswordWrong

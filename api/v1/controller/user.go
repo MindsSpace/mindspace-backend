@@ -64,7 +64,7 @@ func (uc *userController) Authenticate(ctx *gin.Context) {
 	}
 
 	token := uc.jwtService.GenerateToken(user.ID, constant.EnumRoleUser)
-	authResp := base.CreateAuthResponse(token, constant.EnumRoleUser)
+	authResp := base.CreateAuthResponse(token, constant.EnumRoleUser, user.IsProfiled)
 	ctx.JSON(http.StatusOK, base.CreateSuccessResponse(
 		messages.MsgUserAuthenticateSuccess,
 		http.StatusOK, authResp,

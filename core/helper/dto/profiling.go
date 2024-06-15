@@ -15,6 +15,7 @@ type (
 		Approaches []string `json:"approaches"`
 		IsFilled   bool     `json:"is_filled"`
 		UserID     string   `json:"user_id"`
+		RoomID     string   `json:"room_id"`
 		CreatedAt  string   `json:"created_at"`
 	}
 )

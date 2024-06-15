@@ -11,7 +11,9 @@ type Profiling struct {
 	Mood       string         `json:"mood" gorm:"not null"`
 	Problems   pq.StringArray `json:"problems" gorm:"type:varchar(100)[];not null"`
 	Approaches pq.StringArray `json:"approaches" gorm:"type:varchar(100)[];not null"`
-	UserID     string         `json:"user_id" gorm:"foreignKey:UserID"`
+	UserID     string         `json:"user_id" gorm:"foreignKey:UserID;not null"`
 	User       *User          `json:"user,omitempty" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
+	RoomID     string         `json:"room_id" gorm:"foreignKey:RoomID;not null"`
+	Room       *Room          `json:"room,omitempty" gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE;"`
 	base.Model
 }

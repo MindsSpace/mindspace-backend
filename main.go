@@ -26,10 +26,10 @@ func main() {
 		roomR      = repository.NewRoomRepository(txR)
 		profilingR = repository.NewProfilingRepository(txR)
 
-		userS      = service.NewUserService(userR)
+		userS      = service.NewUserService(userR, profilingR)
 		chatS      = service.NewChatService(chatR, roomR)
 		roomS      = service.NewRoomService(roomR, chatR)
-		profilingS = service.NewProfilingService(profilingR)
+		profilingS = service.NewProfilingService(profilingR, roomS)
 
 		userC      = controller.NewUserController(userS, jwtS)
 		chatC      = controller.NewChatController(chatS)
