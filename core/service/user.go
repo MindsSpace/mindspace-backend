@@ -140,11 +140,22 @@ func (us *userService) GetUserByPrimaryKey(ctx context.Context, key string, val 
 		return dto.UserResponse{}, err
 	}
 
+	lastProfiling, err := us.profilingRepository.GetUserLatestProfiling(ctx, nil, user.ID.String())
+	if err != nil {
+		return dto.UserResponse{}, err
+	}
+
+	isProfiled := false
+	if lastProfiling.CreatedAt.Day() == time.Now().Day() {
+		isProfiled = true
+	}
+
 	return dto.UserResponse{
-		ID:       user.ID.String(),
-		Username: user.Username,
-		Level:    user.Level,
-		Point:    user.Point,
+		ID:         user.ID.String(),
+		Username:   user.Username,
+		Level:      user.Level,
+		Point:      user.Point,
+		IsProfiled: &isProfiled,
 	}, nil
 }
 
