@@ -13,6 +13,7 @@ func DBMigrate(db *gorm.DB) {
 		entity.User{},
 		entity.Chat{},
 		entity.Room{},
+		entity.Profiling{},
 	)
 
 	if err != nil {
