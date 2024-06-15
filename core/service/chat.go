@@ -61,17 +61,29 @@ func (us *chatService) CreateNewChat(ctx context.Context, cd dto.ChatCreateReque
 	}
 
 	// create new chat
-	newChat, err := us.chatRepository.CreateNewChat(ctx, db, chat)
+	_, err = us.chatRepository.CreateNewChat(ctx, db, chat)
+	if err != nil {
+		return dto.ChatResponse{}, err
+	}
+
+	response := entity.Chat{
+		Content: "This is the Chatbot's response",
+		IsUser:  false,
+		RoomID:  cd.RoomID,
+	}
+
+	// create new chat
+	newResponse, err := us.chatRepository.CreateNewChat(ctx, db, response)
 	if err != nil {
 		return dto.ChatResponse{}, err
 	}
 
 	return dto.ChatResponse{
-		ID:        newChat.ID.String(),
-		Content:   newChat.Content,
-		IsUser:    newChat.IsUser,
-		RoomID:    newChat.RoomID,
-		CreatedAt: newChat.CreatedAt.String(),
+		ID:        newResponse.ID.String(),
+		Content:   newResponse.Content,
+		IsUser:    newResponse.IsUser,
+		RoomID:    newResponse.RoomID,
+		CreatedAt: newResponse.CreatedAt.String(),
 	}, nil
 }
 
