@@ -2,9 +2,11 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"reflect"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/zetsux/gin-gorm-clean-starter/common/base"
 	"github.com/zetsux/gin-gorm-clean-starter/common/constant"
 	"github.com/zetsux/gin-gorm-clean-starter/common/util"
@@ -25,6 +27,8 @@ type UserService interface {
 	GetUserByPrimaryKey(ctx context.Context, key string, value string) (dto.UserResponse, error)
 	UpdateUserByID(ctx context.Context, ud dto.UserUpdateRequest, id string) (dto.UserResponse, error)
 	DeleteUserByID(ctx context.Context, id string) error
+	ChangeAvatar(ctx context.Context, req dto.UserChangeAvatarRequest, userID string) (dto.UserResponse, error)
+	DeleteAvatar(ctx context.Context, userID string) error
 }
 
 func NewUserService(userR repository.UserRepository, profilingR repository.ProfilingRepository) UserService {
@@ -156,6 +160,7 @@ func (us *userService) GetUserByPrimaryKey(ctx context.Context, key string, val 
 		Level:      user.Level,
 		Point:      user.Point,
 		IsProfiled: &isProfiled,
+		Avatar:     *user.Avatar,
 	}, nil
 }
 
@@ -223,5 +228,76 @@ func (us *userService) DeleteUserByID(ctx context.Context, id string) error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func (us *userService) ChangeAvatar(ctx context.Context, req dto.UserChangeAvatarRequest, userID string) (dto.UserResponse, error) {
+	user, err := us.userRepository.GetUserByPrimaryKey(ctx, nil, constant.DBAttrID, userID)
+	if err != nil {
+		return dto.UserResponse{}, err
+	}
+
+	if reflect.DeepEqual(user, entity.User{}) {
+		return dto.UserResponse{}, errs.ErrUserNotFound
+	}
+
+	if *user.Avatar != "" {
+		if err := util.DeleteFile(*user.Avatar); err != nil {
+			return dto.UserResponse{}, err
+		}
+	}
+
+	picID := uuid.New()
+	picPath := fmt.Sprintf("user_avatar/%v", picID)
+
+	userEdit := entity.User{
+		ID:     user.ID,
+		Avatar: &picPath,
+	}
+
+	if err := util.UploadFile(req.Avatar, picPath); err != nil {
+		return dto.UserResponse{}, err
+	}
+
+	userUpdate, err := us.userRepository.UpdateUser(ctx, nil, userEdit)
+	if err != nil {
+		return dto.UserResponse{}, err
+	}
+
+	return dto.UserResponse{
+		ID:     userUpdate.ID.String(),
+		Avatar: *userUpdate.Avatar,
+	}, nil
+}
+
+func (us *userService) DeleteAvatar(ctx context.Context, userID string) error {
+	user, err := us.userRepository.GetUserByPrimaryKey(ctx, nil, constant.DBAttrID, userID)
+	if err != nil {
+		return err
+	}
+
+	if reflect.DeepEqual(user, entity.User{}) {
+		return errs.ErrUserNotFound
+	}
+
+	if *user.Avatar == "" {
+		return errs.ErrUserNoAvatar
+	}
+
+	if err := util.DeleteFile(*user.Avatar); err != nil {
+		return err
+	}
+
+	emptyStr := ""
+	userEdit := entity.User{
+		ID:     user.ID,
+		Avatar: &emptyStr,
+	}
+
+	_, err = us.userRepository.UpdateUser(ctx, nil, userEdit)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

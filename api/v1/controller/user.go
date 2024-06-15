@@ -27,6 +27,8 @@ type UserController interface {
 	UpdateUserByID(ctx *gin.Context)
 	DeleteSelfUser(ctx *gin.Context)
 	DeleteUserByID(ctx *gin.Context)
+	ChangeAvatar(ctx *gin.Context)
+	DeleteAvatar(ctx *gin.Context)
 }
 
 func NewUserController(userS service.UserService, jwtS service.JWTService) UserController {
@@ -178,6 +180,52 @@ func (uc *userController) DeleteUserByID(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, base.CreateSuccessResponse(
 		messages.MsgUserDeleteSuccess,
+		http.StatusOK, nil,
+	))
+}
+
+func (uc *userController) ChangeAvatar(ctx *gin.Context) {
+	id := ctx.MustGet("ID").(string)
+
+	var userDTO dto.UserChangeAvatarRequest
+	err := ctx.ShouldBind(&userDTO)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, base.CreateFailResponse(
+			messages.MsgUserAvatarUpdateFailed,
+			err.Error(), http.StatusBadRequest,
+		))
+		return
+	}
+
+	res, err := uc.userService.ChangeAvatar(ctx, userDTO, id)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, base.CreateFailResponse(
+			messages.MsgUserAvatarUpdateFailed,
+			err.Error(), http.StatusBadRequest,
+		))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, base.CreateSuccessResponse(
+		messages.MsgUserAvatarUpdateSuccess,
+		http.StatusOK, res,
+	))
+}
+
+func (uc *userController) DeleteAvatar(ctx *gin.Context) {
+	id := ctx.MustGet("ID").(string)
+
+	err := uc.userService.DeleteAvatar(ctx, id)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, base.CreateFailResponse(
+			messages.MsgUserAvatarDeleteFailed,
+			err.Error(), http.StatusBadRequest,
+		))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, base.CreateSuccessResponse(
+		messages.MsgUserAvatarDeleteSuccess,
 		http.StatusOK, nil,
 	))
 }

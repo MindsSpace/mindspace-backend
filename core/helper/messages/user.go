@@ -16,9 +16,9 @@ const (
 	MsgUserDeleteSuccess = "User delete successful"
 	MsgUserDeleteFailed  = "Failed to process user delete request"
 
-	MsgUserPictureUpdateSuccess = "User picture update successful"
-	MsgUserPictureUpdateFailed  = "Failed to process user picture update request"
+	MsgUserAvatarUpdateSuccess = "User avatar update successful"
+	MsgUserAvatarUpdateFailed  = "Failed to process user avatar update request"
 
-	MsgUserPictureDeleteSuccess = "User picture delete successful"
-	MsgUserPictureDeleteFailed  = "Failed to process user picture delete request"
+	MsgUserAvatarDeleteSuccess = "User avatar delete successful"
+	MsgUserAvatarDeleteFailed  = "Failed to process user avatar delete request"
 )

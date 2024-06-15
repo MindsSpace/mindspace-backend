@@ -14,6 +14,7 @@ type User struct {
 	Password string    `json:"password" gorm:"not null"`
 	Level    int       `json:"level" gorm:"not null"`
 	Point    int       `json:"point" gorm:"not null"`
+	Avatar   *string   `json:"avatar"`
 	base.Model
 }
 
