@@ -78,7 +78,7 @@ func (rr *roomRepository) GetRoomAndChatsByID(ctx context.Context, tx *gorm.DB, 
 		}).Take(&room).Error
 	}
 
-	if err != nil && !(errors.Is(err, gorm.ErrRecordNotFound)) {
+	if err != nil {
 		return room, err
 	}
 	return room, nil

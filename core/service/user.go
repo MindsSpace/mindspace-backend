@@ -43,6 +43,7 @@ func (us *userService) AuthenticateUser(ctx context.Context, ud dto.UserAuthRequ
 	}
 	defer us.userRepository.TxRepository().CommitOrRollbackTx(ctx, db, nil)
 
+	isProfiled := false
 	userCheck, err := us.userRepository.GetUserByPrimaryKey(ctx, db, constant.DBAttrUsername, ud.Username)
 	if err != nil {
 		return dto.UserResponse{}, err
@@ -61,8 +62,7 @@ func (us *userService) AuthenticateUser(ctx context.Context, ud dto.UserAuthRequ
 				return dto.UserResponse{}, err
 			}
 
-			isProfiled := false
-			if lastProfiling.CreatedAt.Day() == time.Now().Day() {
+			if !reflect.DeepEqual(lastProfiling, entity.Profiling{}) && lastProfiling.CreatedAt.Day() == time.Now().Day() {
 				isProfiled = true
 			}
 
@@ -91,10 +91,11 @@ func (us *userService) AuthenticateUser(ctx context.Context, ud dto.UserAuthRequ
 	}
 
 	return dto.UserResponse{
-		ID:       newUser.ID.String(),
-		Username: newUser.Username,
-		Level:    newUser.Level,
-		Point:    newUser.Point,
+		ID:         newUser.ID.String(),
+		Username:   newUser.Username,
+		Level:      newUser.Level,
+		Point:      newUser.Point,
+		IsProfiled: &isProfiled,
 	}, nil
 }
 
@@ -151,18 +152,22 @@ func (us *userService) GetUserByPrimaryKey(ctx context.Context, key string, val 
 	}
 
 	isProfiled := false
-	if lastProfiling.CreatedAt.Day() == time.Now().Day() {
+	if !reflect.DeepEqual(lastProfiling, entity.Profiling{}) && lastProfiling.CreatedAt.Day() == time.Now().Day() {
 		isProfiled = true
 	}
 
-	return dto.UserResponse{
+	userResp := dto.UserResponse{
 		ID:         user.ID.String(),
 		Username:   user.Username,
 		Level:      user.Level,
 		Point:      user.Point,
 		IsProfiled: &isProfiled,
-		Avatar:     *user.Avatar,
-	}, nil
+	}
+
+	if user.Avatar != nil {
+		userResp.Avatar = *user.Avatar
+	}
+	return userResp, nil
 }
 
 func (us *userService) UpdateUserByID(ctx context.Context,

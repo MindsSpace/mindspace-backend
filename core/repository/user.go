@@ -134,10 +134,10 @@ func (ur *userRepository) UpdateUser(ctx context.Context, tx *gorm.DB, user enti
 func (ur *userRepository) DeleteUserByID(ctx context.Context, tx *gorm.DB, id string) error {
 	var err error
 	if tx == nil {
-		tx = ur.txr.DB().WithContext(ctx).Debug().Delete(&entity.User{}, &id)
+		tx = ur.txr.DB().WithContext(ctx).Debug().Unscoped().Delete(&entity.User{}, &id)
 		err = tx.Error
 	} else {
-		err = tx.WithContext(ctx).Debug().Delete(&entity.User{}, &id).Error
+		err = tx.WithContext(ctx).Debug().Unscoped().Delete(&entity.User{}, &id).Error
 	}
 
 	if err != nil && !(errors.Is(err, gorm.ErrRecordNotFound)) {

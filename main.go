@@ -25,16 +25,19 @@ func main() {
 		chatR      = repository.NewChatRepository(txR)
 		roomR      = repository.NewRoomRepository(txR)
 		profilingR = repository.NewProfilingRepository(txR)
+		journalR   = repository.NewJournalRepository(txR)
 
 		userS      = service.NewUserService(userR, profilingR)
 		chatS      = service.NewChatService(chatR, roomR)
 		roomS      = service.NewRoomService(roomR, chatR)
 		profilingS = service.NewProfilingService(profilingR, roomS)
+		journalS   = service.NewJournalService(journalR, userS)
 
 		userC      = controller.NewUserController(userS, jwtS)
 		chatC      = controller.NewChatController(chatS)
 		roomC      = controller.NewRoomController(roomS)
 		profilingC = controller.NewProfilingController(profilingS)
+		journalC   = controller.NewJournalController(journalS)
 	)
 
 	defer config.DBClose(db)
@@ -51,6 +54,7 @@ func main() {
 	router.RoomRouter(server, roomC, jwtS)
 	router.ChatRouter(server, chatC, jwtS)
 	router.ProfilingRouter(server, profilingC, jwtS)
+	router.JournalRouter(server, journalC, jwtS)
 
 	// Running in localhost:8080
 	port := os.Getenv("PORT")
