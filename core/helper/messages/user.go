@@ -16,6 +16,9 @@ const (
 	MsgUserDeleteSuccess = "User delete successful"
 	MsgUserDeleteFailed  = "Failed to process user delete request"
 
+	MsgUserPointAddSuccess = "User point add successful"
+	MsgUserPointAddFailed  = "Failed to process user point add request"
+
 	MsgUserAvatarUpdateSuccess = "User avatar update successful"
 	MsgUserAvatarUpdateFailed  = "Failed to process user avatar update request"
 

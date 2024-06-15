@@ -27,6 +27,7 @@ type UserService interface {
 	GetUserByPrimaryKey(ctx context.Context, key string, value string) (dto.UserResponse, error)
 	UpdateUserByID(ctx context.Context, ud dto.UserUpdateRequest, id string) (dto.UserResponse, error)
 	DeleteUserByID(ctx context.Context, id string) error
+	AddPoint(ctx context.Context, userID string, point int) (dto.UserResponse, error)
 	ChangeAvatar(ctx context.Context, req dto.UserChangeAvatarRequest, userID string) (dto.UserResponse, error)
 	DeleteAvatar(ctx context.Context, userID string) error
 }
@@ -229,6 +230,38 @@ func (us *userService) DeleteUserByID(ctx context.Context, id string) error {
 		return err
 	}
 	return nil
+}
+
+func (us *userService) AddPoint(ctx context.Context, userID string, point int) (dto.UserResponse, error) {
+	user, err := us.userRepository.GetUserByPrimaryKey(ctx, nil, constant.DBAttrID, userID)
+	if err != nil {
+		return dto.UserResponse{}, err
+	}
+
+	if reflect.DeepEqual(user, entity.User{}) {
+		return dto.UserResponse{}, errs.ErrUserNotFound
+	}
+
+	pointNeeded := ((constant.DefaultLevelPointMultiplier * user.Level) - user.Point)
+	for point >= pointNeeded {
+		point -= pointNeeded
+		user.Level++
+		pointNeeded = constant.DefaultLevelPointMultiplier * user.Level
+	}
+	user.Point = point
+
+	userUpdate, err := us.userRepository.UpdateUser(ctx, nil, user)
+	if err != nil {
+		return dto.UserResponse{}, err
+	}
+
+	return dto.UserResponse{
+		ID:       userUpdate.ID.String(),
+		Username: userUpdate.Username,
+		Level:    userUpdate.Level,
+		Point:    userUpdate.Point,
+		Avatar:   *userUpdate.Avatar,
+	}, nil
 }
 
 func (us *userService) ChangeAvatar(ctx context.Context, req dto.UserChangeAvatarRequest, userID string) (dto.UserResponse, error) {

@@ -25,6 +25,10 @@ type (
 		Password string `json:"password" form:"password"`
 	}
 
+	UserAddPointRequest struct {
+		Point int `json:"point" form:"point" binding:"required"`
+	}
+
 	UserChangeAvatarRequest struct {
 		Avatar *multipart.FileHeader `json:"avatar" form:"avatar" binding:"required"`
 	}

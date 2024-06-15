@@ -27,6 +27,7 @@ type UserController interface {
 	UpdateUserByID(ctx *gin.Context)
 	DeleteSelfUser(ctx *gin.Context)
 	DeleteUserByID(ctx *gin.Context)
+	AddPoint(ctx *gin.Context)
 	ChangeAvatar(ctx *gin.Context)
 	DeleteAvatar(ctx *gin.Context)
 }
@@ -181,6 +182,34 @@ func (uc *userController) DeleteUserByID(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, base.CreateSuccessResponse(
 		messages.MsgUserDeleteSuccess,
 		http.StatusOK, nil,
+	))
+}
+
+func (uc *userController) AddPoint(ctx *gin.Context) {
+	id := ctx.MustGet("ID").(string)
+
+	var userDTO dto.UserAddPointRequest
+	err := ctx.ShouldBind(&userDTO)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, base.CreateFailResponse(
+			messages.MsgUserAvatarUpdateFailed,
+			err.Error(), http.StatusBadRequest,
+		))
+		return
+	}
+
+	res, err := uc.userService.AddPoint(ctx, id, userDTO.Point)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, base.CreateFailResponse(
+			messages.MsgUserAvatarUpdateFailed,
+			err.Error(), http.StatusBadRequest,
+		))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, base.CreateSuccessResponse(
+		messages.MsgUserAvatarUpdateSuccess,
+		http.StatusOK, res,
 	))
 }
 

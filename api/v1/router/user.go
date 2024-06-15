@@ -21,6 +21,7 @@ func UserRouter(router *gin.Engine, userC controller.UserController, jwtS servic
 		userRoutes.GET("/me", middleware.Authenticate(jwtS, constant.EnumRoleUser), userC.GetMe)
 		userRoutes.DELETE("/me", middleware.Authenticate(jwtS, constant.EnumRoleUser), userC.DeleteSelfUser)
 		userRoutes.POST("", userC.Authenticate)
+		userRoutes.POST("/point", middleware.Authenticate(jwtS, constant.EnumRoleUser), userC.AddPoint)
 		userRoutes.PATCH("/avatar", middleware.Authenticate(jwtS, constant.EnumRoleUser), userC.ChangeAvatar)
 		userRoutes.DELETE("/avatar", middleware.Authenticate(jwtS, constant.EnumRoleUser), userC.DeleteAvatar)
 	}
