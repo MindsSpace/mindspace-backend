@@ -70,6 +70,11 @@ func (us *journalService) CreateNewJournal(ctx context.Context, ud dto.JournalCr
 		return dto.JournalResponse{}, err
 	}
 
+	_, err = us.userService.AddPoint(ctx, ud.UserID, 3)
+	if err != nil {
+		return dto.JournalResponse{}, err
+	}
+
 	return dto.JournalResponse{
 		ID:        newJournal.ID.String(),
 		Content:   newJournal.Content,

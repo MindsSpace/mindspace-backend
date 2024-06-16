@@ -265,7 +265,6 @@ func (us *userService) AddPoint(ctx context.Context, userID string, point int) (
 		Username: userUpdate.Username,
 		Level:    userUpdate.Level,
 		Point:    userUpdate.Point,
-		Avatar:   *userUpdate.Avatar,
 	}, nil
 }
 
