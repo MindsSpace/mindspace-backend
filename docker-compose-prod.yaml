@@ -1,0 +1,9 @@
+version: "3.0.1"
+services:
+  app:
+    env_file:
+      - .env
+    image: mindspace-backend
+    container_name: mindspace-backend
+    networks: "host"
+    restart: always
