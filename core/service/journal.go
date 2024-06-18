@@ -70,7 +70,7 @@ func (us *journalService) CreateNewJournal(ctx context.Context, ud dto.JournalCr
 		return dto.JournalResponse{}, err
 	}
 
-	_, err = us.userService.AddPoint(ctx, ud.UserID, 3)
+	leveledUser, err := us.userService.AddPoint(ctx, ud.UserID, 300)
 	if err != nil {
 		return dto.JournalResponse{}, err
 	}
@@ -80,6 +80,8 @@ func (us *journalService) CreateNewJournal(ctx context.Context, ud dto.JournalCr
 		Content:   newJournal.Content,
 		Image:     newJournal.Image,
 		UserID:    newJournal.UserID,
+		Level:     leveledUser.Level,
+		Point:     leveledUser.Point,
 		CreatedAt: newJournal.CreatedAt.String(),
 	}, nil
 }

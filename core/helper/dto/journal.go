@@ -14,6 +14,8 @@ type (
 		Content   string `json:"content"`
 		Image     string `json:"image,omitempty"`
 		UserID    string `json:"user_id,omitempty"`
+		Level     int    `json:"level,omitempty"`
+		Point     int    `json:"point,omitempty"`
 		CreatedAt string `json:"created_at"`
 	}
 )

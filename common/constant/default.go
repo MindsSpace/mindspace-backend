@@ -5,5 +5,5 @@ const (
 
 	DefaultPaginationLimit = 10
 
-	DefaultLevelPointMultiplier = 5
+	DefaultLevelPointMultiplier = 500
 )

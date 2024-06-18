@@ -278,7 +278,7 @@ func (us *userService) ChangeAvatar(ctx context.Context, req dto.UserChangeAvata
 		return dto.UserResponse{}, errs.ErrUserNotFound
 	}
 
-	if *user.Avatar != "" {
+	if user.Avatar != nil && *user.Avatar != "" {
 		if err := util.DeleteFile(*user.Avatar); err != nil {
 			return dto.UserResponse{}, err
 		}
