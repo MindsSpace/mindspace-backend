@@ -4,6 +4,7 @@ import (
 	"context"
 	"reflect"
 
+	"github.com/zetsux/gin-gorm-clean-starter/common/util"
 	"github.com/zetsux/gin-gorm-clean-starter/core/entity"
 	"github.com/zetsux/gin-gorm-clean-starter/core/helper/dto"
 	errs "github.com/zetsux/gin-gorm-clean-starter/core/helper/errors"
@@ -66,8 +67,13 @@ func (us *chatService) CreateNewChat(ctx context.Context, cd dto.ChatCreateReque
 		return dto.ChatResponse{}, err
 	}
 
+	chatbotResp, err := util.GetChatbotResponse(cd.Content)
+	if err != nil {
+		return dto.ChatResponse{}, err
+	}
+
 	response := entity.Chat{
-		Content: "This is the Chatbot's response",
+		Content: chatbotResp,
 		IsUser:  false,
 		RoomID:  cd.RoomID,
 	}
