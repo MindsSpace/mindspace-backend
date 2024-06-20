@@ -146,6 +146,10 @@ func (us *userService) GetUserByPrimaryKey(ctx context.Context, key string, val 
 		return dto.UserResponse{}, err
 	}
 
+	if reflect.DeepEqual(user, entity.User{}) {
+		return dto.UserResponse{}, errs.ErrUserNotFound
+	}
+
 	lastProfiling, err := us.profilingRepository.GetUserLatestProfiling(ctx, nil, user.ID.String())
 	if err != nil {
 		return dto.UserResponse{}, err
