@@ -2,9 +2,11 @@ package service
 
 import (
 	"context"
+	"math/rand"
 	"reflect"
 
 	"github.com/google/uuid"
+	"github.com/zetsux/gin-gorm-clean-starter/common/constant"
 	"github.com/zetsux/gin-gorm-clean-starter/core/entity"
 	"github.com/zetsux/gin-gorm-clean-starter/core/helper/dto"
 	errs "github.com/zetsux/gin-gorm-clean-starter/core/helper/errors"
@@ -61,9 +63,14 @@ func (us *roomService) CreateNewRoom(ctx context.Context, ud dto.RoomCreateReque
 	}
 
 	chat := entity.Chat{
-		Content: ud.Greeting,
-		IsUser:  false,
-		RoomID:  newRoom.ID.String(),
+		IsUser: false,
+		RoomID: newRoom.ID.String(),
+	}
+
+	if ud.Theme != "" {
+		chat.Content = constant.ChatbotGreetings[ud.Theme][rand.Intn(len(constant.ChatbotGreetings[ud.Theme]))]
+	} else {
+		chat.Content = constant.ChatbotGreetings["default"][rand.Intn(len(constant.ChatbotGreetings["default"]))]
 	}
 
 	// create first chat

@@ -2,10 +2,8 @@ package service
 
 import (
 	"context"
-	"math/rand"
 	"time"
 
-	"github.com/zetsux/gin-gorm-clean-starter/common/constant"
 	"github.com/zetsux/gin-gorm-clean-starter/core/entity"
 	"github.com/zetsux/gin-gorm-clean-starter/core/helper/dto"
 	"github.com/zetsux/gin-gorm-clean-starter/core/helper/errors"
@@ -42,11 +40,30 @@ func (us *profilingService) CreateNewProfiling(ctx context.Context, ud dto.Profi
 		return dto.ProfilingResponse{}, errors.ErrProfilingFilledToday
 	}
 
+	room := dto.RoomCreateRequest{
+		UserID: ud.UserID,
+	}
+
+	switch len(ud.Problems) {
+	case 0:
+		room.Theme = "default"
+	case 1:
+		switch ud.Problems[0] {
+		case "Anxiety attack":
+			room.Theme = "anxiety"
+		case "Overthinking":
+			room.Theme = "overthinking"
+		case "Sleep disorder":
+			room.Theme = "sleep_disorder"
+		default:
+			room.Theme = "default"
+		}
+	default:
+		room.Theme = "combination"
+	}
+
 	// create room for profiling
-	newRoom, err := us.roomService.CreateNewRoom(ctx, dto.RoomCreateRequest{
-		Greeting: constant.GreetingMessages[rand.Intn(len(constant.GreetingMessages))],
-		UserID:   ud.UserID,
-	})
+	newRoom, err := us.roomService.CreateNewRoom(ctx, room)
 	if err != nil {
 		return dto.ProfilingResponse{}, err
 	}

@@ -1,11 +1,9 @@
 package controller
 
 import (
-	"math/rand"
 	"net/http"
 
 	"github.com/zetsux/gin-gorm-clean-starter/common/base"
-	"github.com/zetsux/gin-gorm-clean-starter/common/constant"
 	"github.com/zetsux/gin-gorm-clean-starter/core/helper/dto"
 	"github.com/zetsux/gin-gorm-clean-starter/core/helper/messages"
 	"github.com/zetsux/gin-gorm-clean-starter/core/service"
@@ -51,10 +49,18 @@ func (rc *roomController) GetRoomAndChatsByID(ctx *gin.Context) {
 func (rc *roomController) CreateNewRoom(ctx *gin.Context) {
 	userID := ctx.MustGet("ID").(string)
 
-	newRoom, err := rc.roomService.CreateNewRoom(ctx, dto.RoomCreateRequest{
-		Greeting: constant.GreetingMessages[rand.Intn(len(constant.GreetingMessages))],
-		UserID:   userID,
-	})
+	var roomDTO dto.RoomCreateRequest
+	err := ctx.ShouldBind(&roomDTO)
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, base.CreateFailResponse(
+			messages.MsgRoomCreateFailed,
+			err.Error(), http.StatusBadRequest,
+		))
+		return
+	}
+	roomDTO.UserID = userID
+
+	newRoom, err := rc.roomService.CreateNewRoom(ctx, roomDTO)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, base.CreateFailResponse(
 			messages.MsgRoomCreateFailed,
