@@ -2,8 +2,9 @@ package dto
 
 type (
 	ChatCreateRequest struct {
-		Content string `json:"content" form:"content" binding:"required"`
-		RoomID  string `json:"room_id" form:"room_id" binding:"required"`
+		Content  string `json:"content" form:"content" binding:"required"`
+		RoomID   string `json:"room_id" form:"room_id" binding:"required"`
+		Language string `json:"language" form:"language" binding:"required"`
 	}
 
 	ChatResponse struct {

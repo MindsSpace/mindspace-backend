@@ -67,7 +67,7 @@ func (us *chatService) CreateNewChat(ctx context.Context, cd dto.ChatCreateReque
 		return dto.ChatResponse{}, err
 	}
 
-	chatbotResp, err := util.GetChatbotResponse(cd.Content)
+	chatbotResp, err := util.GetChatbotResponse(cd.Language, cd.Content)
 	if err != nil {
 		return dto.ChatResponse{}, err
 	}

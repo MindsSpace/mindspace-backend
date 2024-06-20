@@ -14,14 +14,15 @@ type ChatbotResponse struct {
 	Response string `json:"response"`
 }
 
-func GetChatbotResponse(message string) (string, error) {
+func GetChatbotResponse(lang string, message string) (string, error) {
 	reqUrl, err := url.Parse(os.Getenv("MLAPI_URL"))
 	if err != nil {
 		return "", err
 	}
 
 	query := reqUrl.Query()
-	query.Add("input_text", message)
+	query.Add("language", lang)
+	query.Add("input", message)
 	reqUrl.RawQuery = query.Encode()
 
 	r, err := http.NewRequest("POST", reqUrl.String(), nil)
