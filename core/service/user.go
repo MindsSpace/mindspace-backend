@@ -53,7 +53,7 @@ func (us *userService) AuthenticateUser(ctx context.Context, ud dto.UserAuthRequ
 	if !(reflect.DeepEqual(userCheck, entity.User{})) {
 		passwordCheck, err := util.PasswordCompare(userCheck.Password, []byte(ud.Password))
 		if err != nil {
-			return dto.UserResponse{}, err
+			return dto.UserResponse{}, errs.ErrPasswordWrong
 		}
 
 		if userCheck.Username == ud.Username && passwordCheck {
