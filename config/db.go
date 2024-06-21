@@ -6,19 +6,11 @@ import (
 
 	migration "github.com/zetsux/gin-gorm-clean-starter/database"
 
-	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
 func DBSetup() *gorm.DB {
-	if os.Getenv("APP_ENV") != "production" {
-		err := godotenv.Load(".env")
-		if err != nil {
-			fmt.Println(err)
-			panic(err)
-		}
-	}
 
 	dbUser := os.Getenv("DB_USER")
 	dbPass := os.Getenv("DB_PASS")

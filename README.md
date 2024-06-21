@@ -175,3 +175,7 @@ A Clean Architecture starter template for projects using Gin (Golang) and Postgr
 ## API Documentation (Postman)
 
 Link : https://documenter.getpostman.com/view/25087235/2s9YXfcizj
+
+## Docker
+
+docker buildx build --platform linux/amd64 -t mindspace-backend .

@@ -23,3 +23,5 @@ down-prod:
 
 exec-pg:
 	docker exec -it mindspace-db psql -U postgres -d mindspace
+
+tag:
